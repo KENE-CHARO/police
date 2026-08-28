@@ -1,0 +1,145 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+        "title": "Police API",
+        "version": "1.0.0",
+        "description": "API REST pour la gestion des plaintes, enquêtes et notifications."
+    },
+    "servers": [
+        {
+            "url": "https://api.example.local"
+        }
+    ],
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+        },
+        "schemas": {
+            "Notification": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "type": "object"
+                    },
+                    "read_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            }
+        }
+    },
+    "paths": {
+        "/api/auth/login": {
+            "post": {
+                "summary": "Login",
+                "requestBody": {
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Token"
+                    }
+                }
+            }
+        },
+        "/api/enquetes/assign": {
+            "post": {
+                "summary": "Assigner une enquête",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Enquête créée"
+                    }
+                }
+            },
+            "/api/enquetes/{enquete}/status": {
+                "put": {
+                    "summary": "Mettre à jour le statut d'une enquête",
+                    "security": [
+                        {
+                            "bearerAuth": []
+                        }
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "Enquête mise à jour"
+                        }
+                    }
+                },
+                "/api/notifications": {
+                    "get": {
+                        "summary": "Récupérer les notifications de l'utilisateur authentifié",
+                        "security": [
+                            {
+                                "bearerAuth": []
+                            }
+                        ],
+                        "responses": {
+                            "200": {
+                                "description": "Liste des notifications"
+                            }
+                        }
+                    },
+                    "/api/notifications/{id}/read": {
+                        "post": {
+                            "summary": "Marquer une notification comme lue",
+                            "security": [
+                                {
+                                    "bearerAuth": []
+                                }
+                            ],
+                            "responses": {
+                                "200": {
+                                    "description": "OK"
+                                }
+                            }
+                        },
+                        "/api/plaintes/{plainte}/attachments": {
+                            "post": {
+                                "summary": "Télécharger une pièce jointe pour une plainte",
+                                "security": [
+                                    {
+                                        "bearerAuth": []
+                                    }
+                                ],
+                                "responses": {
+                                    "201": {
+                                        "description": "Fichier uploadé"
+                                    }
+                                }
+                            },
+                            "/api/plaintes/{plainte}/attachments/{attachment}": {
+                                "get": {
+                                    "summary": "Télécharger une pièce jointe",
+                                    "security": [
+                                        {
+                                            "bearerAuth": []
+                                        }
+                                    ],
+                                    "responses": {
+                                        "200": {
+                                            "description": "Contenu du fichier"
+                                        }
+                                    }
+                                }
+                            }
+                        }

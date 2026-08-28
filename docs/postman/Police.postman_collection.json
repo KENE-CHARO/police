@@ -1,0 +1,255 @@
+{
+    "info": {
+        "name": "Police API",
+        "_postman_id": "police-api-001",
+        "description": "Collection pour tester les endpoints Auth et Plaintes",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://127.0.0.1:8000"
+        },
+        {
+            "key": "token",
+            "value": ""
+        }
+    ],
+    "item": [
+        {
+            "name": "Auth / Register",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"secret123\",\n  \"password_confirmation\": \"secret123\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/auth/register",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "auth",
+                        "register"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Auth / Login",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    {
+                        "name": "Plaintes / Download Attachment",
+                        "request": {
+                            "method": "GET",
+                            "header": [
+                                {
+                                    "key": "Authorization",
+                                    "value": "Bearer {{token}}"
+                                }
+                            ],
+                            "url": {
+                                "raw": "{{baseUrl}}/api/plaintes/:id/attachments/:attachment",
+                                "host": [
+                                    "{{baseUrl}}"
+                                ],
+                                "path": [
+                                    "api",
+                                    "plaintes",
+                                    ":id",
+                                    "attachments",
+                                    ":attachment"
+                                ]
+                            }
+                        }
+                    },
+                    "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"secret123\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/auth/login",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "auth",
+                        "login"
+                    ]
+                }
+            },
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "var json = pm.response.json();",
+                            "if (json.token) { pm.environment.set('token', json.token); }",
+                            "pm.test('login has token', function() { pm.expect(json).to.have.property('token'); });"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Auth / Me",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/auth/me",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "auth",
+                        "me"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Plaintes / List",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{token}}"
+                    }
+                ],
+                {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                }
+            ],
+            "url": {
+                "raw": "{{baseUrl}}/api/plaintes",
+                "host": [
+                    "{{baseUrl}}"
+                ],
+                {
+                    "name": "Plaintes / Upload Attachment",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{token}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "file",
+                                    "type": "file",
+                                    "src": ""
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/plaintes/:id/attachments",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "plaintes",
+                                ":id",
+                                "attachments"
+                            ]
+                        }
+                    }
+                },
+                "path": [
+                    "api",
+                    "plaintes"
+                ]
+            }
+        }
+    },
+    {
+        "name": "Plaintes / Create",
+        "request": {
+            "method": "POST",
+            "header": [
+                {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                }
+            ],
+            "body": {
+                "mode": "formdata",
+                "formdata": [
+                    {
+                        "key": "titre",
+                        "value": "Vol de vélo",
+                        "type": "text"
+                    },
+                    {
+                        "key": "description",
+                        "value": "Description de la plainte.",
+                        "type": "text"
+                    }
+                ]
+            },
+            "url": {
+                "raw": "{{baseUrl}}/api/plaintes",
+                "host": [
+                    "{{baseUrl}}"
+                ],
+                "path": [
+                    "api",
+                    "plaintes"
+                ]
+            }
+        }
+    },
+    {
+        "name": "Plaintes / Show",
+        "request": {
+            "method": "GET",
+            "header": [
+                {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                }
+            ],
+            "url": {
+                "raw": "{{baseUrl}}/api/plaintes/:id",
+                "host": [
+                    "{{baseUrl}}"
+                ],
+                "path": [
+                    "api",
+                    "plaintes",
+                    ":id"
+                ]
+            }
+        }
+    }
+]
+}

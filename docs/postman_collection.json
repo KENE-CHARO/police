@@ -1,0 +1,234 @@
+{
+    "info": {
+        "name": "Police API",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Auth - Login",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    ,
+                    {
+                        "name": "Admin - List Notifications",
+                        "request": {
+                            "method": "GET",
+                            "header": [
+                                {
+                                    "key": "Authorization",
+                                    "value": "Bearer {{TOKEN}}"
+                                }
+                            ],
+                            "url": {
+                                "raw": "{{BASE_URL}}/api/admin/notifications",
+                                "host": [
+                                    "{{BASE_URL}}"
+                                ],
+                                "path": [
+                                    "api",
+                                    "admin",
+                                    "notifications"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "name": "Admin - Mark Read Bulk",
+                        "request": {
+                            "method": "POST",
+                            "header": [
+                                {
+                                    "key": "Authorization",
+                                    "value": "Bearer {{TOKEN}}"
+                                },
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": {
+                                "mode": "raw",
+                                "raw": "{\"ids\":[1,2,3]}"
+                            },
+                            "url": {
+                                "raw": "{{BASE_URL}}/api/admin/notifications/mark-read",
+                                "host": [
+                                    "{{BASE_URL}}"
+                                ],
+                                "path": [
+                                    "api",
+                                    "admin",
+                                    "notifications",
+                                    "mark-read"
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        "name": "Admin - Delete Bulk",
+                        "request": {
+                            "method": "DELETE",
+                            "header": [
+                                {
+                                    "key": "Authorization",
+                                    "value": "Bearer {{TOKEN}}"
+                                },
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": {
+                                "mode": "raw",
+                                "raw": "{\"ids\":[1,2,3]}"
+                            },
+                            "url": {
+                                "raw": "{{BASE_URL}}/api/admin/notifications",
+                                "host": [
+                                    "{{BASE_URL}}"
+                                ],
+                                "path": [
+                                    "api",
+                                    "admin",
+                                    "notifications"
+                                ]
+                            }
+                        }
+                    }
+                    "raw": "{\"email\":\"user@example.com\",\"password\":\"secret\"}"
+                },
+                "url": {
+                    "raw": "{{BASE_URL}}/api/auth/login",
+                    "host": [
+                        "{{BASE_URL}}"
+                    ],
+                    "path": [
+                        "api",
+                        "auth",
+                        "login"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Register",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\"name\":\"User\",\"email\":\"user@example.com\",\"password\":\"secret\"}"
+                },
+                "url": {
+                    "raw": "{{BASE_URL}}/api/auth/register",
+                    "host": [
+                        "{{BASE_URL}}"
+                    ],
+                    "path": [
+                        "api",
+                        "auth",
+                        "register"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Assign Enquete",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{TOKEN}}"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\"plainte_id\":1,\"enqueteur_id\":5}"
+                },
+                "url": {
+                    "raw": "{{BASE_URL}}/api/enquetes/assign",
+                    "host": [
+                        "{{BASE_URL}}"
+                    ],
+                    "path": [
+                        "api",
+                        "enquetes",
+                        "assign"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Update Enquete Status",
+            "request": {
+                "method": "PUT",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{TOKEN}}"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\"statut\":\"in_progress\"}"
+                },
+                "url": {
+                    "raw": "{{BASE_URL}}/api/enquetes/1/status",
+                    "host": [
+                        "{{BASE_URL}}"
+                    ],
+                    "path": [
+                        "api",
+                        "enquetes",
+                        "1",
+                        "status"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Get Notifications",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{TOKEN}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{BASE_URL}}/api/notifications",
+                    "host": [
+                        "{{BASE_URL}}"
+                    ],
+                    "path": [
+                        "api",
+                        "notifications"
+                    ]
+                }
+            }
+        }
+    ]
+}
