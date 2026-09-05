@@ -53,6 +53,27 @@ class AdminController extends Controller
         return response()->json(Role::all());
     }
 
+    public function listCommissariats(Request $request)
+    {
+        $this->ensureAdmin($request);
+        return response()->json(\App\Models\Commissariat::orderBy('nom')->get());
+    }
+
+    public function createCommissariat(Request $request)
+    {
+        $this->ensureAdmin($request);
+
+        $data = $request->validate([
+            'nom' => 'required|string|max:255',
+            'adresse' => 'nullable|string|max:1000',
+            'telephone' => 'nullable|string|max:50',
+        ]);
+
+        $comm = \App\Models\Commissariat::create($data);
+
+        return response()->json(['message' => 'Commissariat créé.', 'commissariat' => $comm], 201);
+    }
+
     public function assignRole(Request $request, User $user)
     {
         $this->ensureAdmin($request);
