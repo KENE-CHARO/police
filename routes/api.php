@@ -46,6 +46,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('admin/roles', [App\Http\Controllers\API\AdminController::class, 'listRoles']);
     Route::get('admin/commissariats', [App\Http\Controllers\API\AdminController::class, 'listCommissariats']);
     Route::post('admin/commissariats', [App\Http\Controllers\API\AdminController::class, 'createCommissariat']);
+    // Public list for registration and frontend use
+    Route::get('commissariats', [App\Http\Controllers\API\AdminController::class, 'publicListCommissariats']);
     Route::post('admin/users/{user}/activate', [App\Http\Controllers\API\AdminController::class, 'activateUser']);
     Route::delete('admin/users/{user}', [App\Http\Controllers\API\AdminController::class, 'deleteUser']);
     Route::post('admin/users/{user}/roles', [App\Http\Controllers\API\AdminController::class, 'assignRole']);

@@ -74,6 +74,12 @@ class AdminController extends Controller
         return response()->json(['message' => 'Commissariat créé.', 'commissariat' => $comm], 201);
     }
 
+    // Public listing of commissariats for registration and public UI
+    public function publicListCommissariats(Request $request)
+    {
+        return response()->json(\App\Models\Commissariat::orderBy('nom')->get());
+    }
+
     public function assignRole(Request $request, User $user)
     {
         $this->ensureAdmin($request);

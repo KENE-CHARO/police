@@ -223,6 +223,20 @@ function App() {
         fetchComms();
     }, [token, sessionRole]);
 
+    // Fetch public commissariats for registration dropdown even when not authenticated
+    useEffect(() => {
+        const fetchPublicComms = async () => {
+            try {
+                const res = await API.get('/commissariats');
+                const payload = res?.data?.data ?? res?.data ?? [];
+                if (Array.isArray(payload)) setCommissariats(payload);
+            } catch (err) {
+                // ignore
+            }
+        };
+        fetchPublicComms();
+    }, []);
+
     // When a complaint is selected, fetch full details from API so the user (enqueteur) can view attachments and full dossier
     useEffect(() => {
         if (!selectedComplaintId) {
@@ -773,9 +787,13 @@ function App() {
                                                 <span className="mb-1 block text-sm text-slate-300">Commissariat de travail</span>
                                                 <select name="commissariat_id" defaultValue="" className="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-3 py-2.5 text-white outline-none transition focus:border-cyan-500" required>
                                                     <option value="">Sélectionner un commissariat</option>
-                                                    <option value="1">Commissariat central</option>
-                                                    <option value="2">Commissariat Ouest</option>
-                                                    <option value="3">Commissariat Nord</option>
+                                                    {commissariats.length === 0 ? (
+                                                        <option value="">Aucun commissariat disponible</option>
+                                                    ) : (
+                                                        commissariats.map((c) => (
+                                                            <option key={c.id} value={c.id}>{c.nom}</option>
+                                                        ))
+                                                    )}
                                                 </select>
                                             </label>
                                         </>
