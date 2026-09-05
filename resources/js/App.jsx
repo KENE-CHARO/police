@@ -184,7 +184,11 @@ function App() {
                 const route = sessionRole === 'admin' ? '/admin/users' : '/admin/enqueteurs';
                 const res = await API.get(route, { headers: authHeaders });
                 const payload = res?.data?.data ?? res?.data ?? [];
-                const users = Array.isArray(payload) ? payload : [];
+                let users = Array.isArray(payload) ? payload : [];
+                // defensive client-side filter: only active enqueteurs for non-admin roles
+                if (sessionRole !== 'admin') {
+                    users = users.filter((u) => Boolean(u.is_active));
+                }
 
                 setAllUsers(users.map((person) => normalizeUserRecord(person)));
             } catch (err) {
