@@ -15,9 +15,14 @@ class PlaintePolicy
             return true;
         }
 
-        // Personnel (agent_accueil, enqueteur) can view all plaintes, admin should not see details
-        if ($user->roles()->whereIn('name', ['agent_accueil', 'enqueteur'])->exists()) {
+        // Agent d'accueil can view all plaintes
+        if ($user->roles()->where('name', 'agent_accueil')->exists()) {
             return true;
+        }
+
+        // Enqueteur can view only plaintes that are assigned to them via an Enquete
+        if ($user->roles()->where('name', 'enqueteur')->exists()) {
+            return Enquete::where('plainte_id', $plainte->id)->where('enqueteur_id', $user->id)->exists();
         }
 
         return false;

@@ -22,8 +22,17 @@ class AttachmentPolicy
             }
 
             // personnel (agent_accueil, enqueteur)
-            if ($user->roles()->whereIn('name', ['agent_accueil', 'enqueteur'])->exists()) {
+            // agent_accueil can download any attachment for a plainte
+            if ($user->roles()->where('name', 'agent_accueil')->exists()) {
                 return true;
+            }
+
+            // enqueteur can download only if assigned to the plainte
+            if ($user->roles()->where('name', 'enqueteur')->exists()) {
+                $plainte = $attachment->attachable;
+                if ($plainte && \App\Models\Enquete::where('plainte_id', $plainte->id)->where('enqueteur_id', $user->id)->exists()) {
+                    return true;
+                }
             }
         }
 
