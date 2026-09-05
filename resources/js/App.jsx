@@ -173,7 +173,10 @@ function App() {
     }, [token]);
 
     useEffect(() => {
-        if (!token || !user || sessionRole !== 'admin') return;
+        if (!token || !user) return;
+
+        // Fetch users when admin, agent_accueil or enqueteur needs them
+        if (!['admin', 'agent_accueil', 'enqueteur'].includes(sessionRole)) return;
 
         const fetchUsers = async () => {
             try {
@@ -367,8 +370,29 @@ function App() {
         setMessage('Le statut du dossier a été mis à jour.');
     };
 
-    const assignComplaint = (id, assignee) => {
-        setPlaintes((prev) => prev.map((item) => item.id === id ? { ...item, assignee } : item));
+    const assignComplaint = async (id, enqueteurId) => {
+        // if agent_accueil, call API to create an enquete assignment
+        if (sessionRole === 'agent_accueil' && token) {
+            try {
+                setLoading(true);
+                const res = await API.post('/enquetes/assign', { plainte_id: id, enqueteur_id: enqueteurId }, { headers: authHeaders });
+                const enquete = res.data;
+                // update local plainte assignee display to enqueteur name if available
+                const enqueteur = allUsers.find((u) => Number(u.id) === Number(enquete.enqueteur_id));
+                const assigneeLabel = enqueteur ? enqueteur.name : 'enqueteur';
+                setPlaintes((prev) => prev.map((item) => item.id === id ? { ...item, assignee: assigneeLabel } : item));
+                setMessage('Le dossier a été affecté à l’enquêteur.');
+            } catch (err) {
+                console.error(err);
+                setError(err?.response?.data?.message || 'Erreur lors de l’affectation.');
+            } finally {
+                setLoading(false);
+            }
+            return;
+        }
+
+        // fallback: local update
+        setPlaintes((prev) => prev.map((item) => item.id === id ? { ...item, assignee: enqueteurId } : item));
         setMessage('Le dossier a été affecté au bon acteur.');
     };
 
@@ -973,10 +997,11 @@ function App() {
                                                                     </button>
                                                                 )}
                                                                 {sessionRole === 'agent_accueil' && (
-                                                                    <select value={plainte.assignee || 'enqueteur'} onChange={(e) => assignComplaint(plainte.id, e.target.value)} className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-white outline-none transition focus:border-cyan-400">
-                                                                        <option value="enqueteur">Enquêteur</option>
-                                                                        <option value="admin">Admin</option>
-                                                                        <option value="agent_accueil">Agent</option>
+                                                                    <select value={plainte.assignee || ''} onChange={(e) => assignComplaint(plainte.id, e.target.value)} className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-white outline-none transition focus:border-cyan-400">
+                                                                        <option value="">Choisir enquêteur</option>
+                                                                        {allUsers.filter(u => u.role === 'enqueteur').map((u) => (
+                                                                            <option key={u.id} value={u.id}>{u.name}</option>
+                                                                        ))}
                                                                     </select>
                                                                 )}
                                                                 {sessionRole === 'enqueteur' && (
@@ -997,7 +1022,7 @@ function App() {
                                 </div>
                             </section>
 
-                            {selectedComplaint && sessionRole === 'admin' ? (
+                            {selectedComplaint && sessionRole === 'admin' && (
                                 <section className="mt-6 rounded-[28px] border border-slate-800 bg-gradient-to-br from-slate-950 via-slate-950 to-slate-900/90 p-5 shadow-[0_20px_50px_rgba(14,165,233,0.08)]">
                                     <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                                         <div className="flex items-center gap-3">
@@ -1014,22 +1039,22 @@ function App() {
                                         </div>
                                     </div>
                                 </section>
-                            ) : (
-                                selectedComplaint && (
-                                    <section className="mt-6 rounded-[28px] border border-slate-800 bg-gradient-to-br from-slate-950 via-slate-950 to-slate-900/90 p-5 shadow-[0_20px_50px_rgba(14,165,233,0.08)]">
-                                        <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-cyan-500/10 text-lg text-cyan-300">📄</div>
-                                                <div>
-                                                    <div className="text-xs uppercase tracking-[0.28em] text-cyan-400">Dossier sélectionné</div>
-                                                    <h3 className="mt-1 text-2xl font-bold text-white">{selectedComplaint.titre}</h3>
-                                                </div>
-                                            </div>
-                                            <div className="flex flex-wrap gap-2">
-                                                <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[10px] uppercase tracking-[0.2em] text-amber-200">{selectedComplaint.priorite || 'normale'}</span>
-                                                <span className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-1 text-[10px] uppercase tracking-[0.2em] text-cyan-200">{selectedComplaint.statut || 'ouvert'}</span>
+                            )}
+                            {selectedComplaint && sessionRole !== 'admin' && (
+                                <section className="mt-6 rounded-[28px] border border-slate-800 bg-gradient-to-br from-slate-950 via-slate-950 to-slate-900/90 p-5 shadow-[0_20px_50px_rgba(14,165,233,0.08)]">
+                                    <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-cyan-500/10 text-lg text-cyan-300">📄</div>
+                                            <div>
+                                                <div className="text-xs uppercase tracking-[0.28em] text-cyan-400">Dossier sélectionné</div>
+                                                <h3 className="mt-1 text-2xl font-bold text-white">{selectedComplaint.titre}</h3>
                                             </div>
                                         </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[10px] uppercase tracking-[0.2em] text-amber-200">{selectedComplaint.priorite || 'normale'}</span>
+                                            <span className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-1 text-[10px] uppercase tracking-[0.2em] text-cyan-200">{selectedComplaint.statut || 'ouvert'}</span>
+                                        </div>
+                                    </div>
 
                                     <div className="grid gap-6 xl:grid-cols-2">
                                         <div className="space-y-4">
