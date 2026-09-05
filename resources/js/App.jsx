@@ -382,6 +382,8 @@ function App() {
                 const assigneeLabel = enqueteur ? enqueteur.name : 'enqueteur';
                 setPlaintes((prev) => prev.map((item) => item.id === id ? { ...item, assignee: assigneeLabel } : item));
                 setMessage('Le dossier a été affecté à l’enquêteur.');
+                // push a local notification for real-time confirmation
+                setNotifications((prev) => [{ id: Date.now(), type: 'Plainte assignée', data: { dossier: id, to: assigneeLabel, enquete_id: enquete.id }, read_at: null, created_at: new Date().toISOString() }, ...prev]);
             } catch (err) {
                 console.error(err);
                 setError(err?.response?.data?.message || 'Erreur lors de l’affectation.');
