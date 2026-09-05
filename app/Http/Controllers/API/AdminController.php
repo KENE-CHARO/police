@@ -29,6 +29,23 @@ class AdminController extends Controller
         return response()->json($users);
     }
 
+    public function listEnqueteurs(Request $request)
+    {
+        $user = $request->user();
+        if (! $user->roles()->whereIn('name', ['admin', 'agent_accueil'])->exists()) {
+            abort(403, 'Unauthorized');
+        }
+
+        $enqueteurs = User::with('roles')
+            ->whereHas('roles', function ($q) {
+                $q->where('name', 'enqueteur');
+            })
+            ->orderBy('name')
+            ->get();
+
+        return response()->json($enqueteurs);
+    }
+
     public function listRoles(Request $request)
     {
         $this->ensureAdmin($request);

@@ -42,6 +42,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('plaintes/{plainte}/historiques', [App\Http\Controllers\API\PlainteController::class, 'historiques']);
     // admin routes
     Route::get('admin/users', [App\Http\Controllers\API\AdminController::class, 'listUsers']);
+    Route::get('admin/enqueteurs', [App\Http\Controllers\API\AdminController::class, 'listEnqueteurs']);
     Route::get('admin/roles', [App\Http\Controllers\API\AdminController::class, 'listRoles']);
     Route::post('admin/users/{user}/activate', [App\Http\Controllers\API\AdminController::class, 'activateUser']);
     Route::delete('admin/users/{user}', [App\Http\Controllers\API\AdminController::class, 'deleteUser']);

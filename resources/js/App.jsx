@@ -175,12 +175,13 @@ function App() {
     useEffect(() => {
         if (!token || !user) return;
 
-        // Fetch users when admin, agent_accueil or enqueteur needs them
+        // Fetch users: admin fetches full list, agent_accueil fetches enqueteurs
         if (!['admin', 'agent_accueil', 'enqueteur'].includes(sessionRole)) return;
 
         const fetchUsers = async () => {
             try {
-                const res = await API.get('/admin/users', { headers: authHeaders });
+                const route = sessionRole === 'admin' ? '/admin/users' : '/admin/enqueteurs';
+                const res = await API.get(route, { headers: authHeaders });
                 const payload = res?.data?.data ?? res?.data ?? [];
                 const users = Array.isArray(payload) ? payload : [];
 
