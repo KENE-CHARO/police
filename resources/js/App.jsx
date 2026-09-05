@@ -644,7 +644,7 @@ function App() {
         ? plaintes.filter((item) => Number(item.plaignant_id) === Number(user?.id))
         : plaintes;
 
-    const selectedComplaint = visibleComplaints.find((item) => Number(item.id) === Number(selectedComplaintId)) || null;
+    // `selectedComplaint` is stored in state (`selectedComplaint`) and populated by effect when `selectedComplaintId` changes.
     const getAttachmentUrl = (path) => {
         if (!path) return null;
         if (path.startsWith('http')) return path;
