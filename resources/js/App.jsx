@@ -116,6 +116,7 @@ function App() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
+    const [toast, setToast] = useState(null);
     const [plaintes, setPlaintes] = useState(initialComplaints);
     const [notifications, setNotifications] = useState(initialNotifications);
     const [currentPage, setCurrentPage] = useState('dashboard');
@@ -400,6 +401,7 @@ function App() {
                 const assigneeLabel = enqueteur ? enqueteur.name : 'enqueteur';
                 setPlaintes((prev) => prev.map((item) => item.id === id ? { ...item, assignee: assigneeLabel } : item));
                 setMessage('Le dossier a été affecté à l’enquêteur.');
+                showToast(`Dossier assigné à ${assigneeLabel}`);
                 // push a local notification for real-time confirmation
                 setNotifications((prev) => [{ id: Date.now(), type: 'Plainte assignée', data: { dossier: id, to: assigneeLabel, enquete_id: enquete.id }, read_at: null, created_at: new Date().toISOString() }, ...prev]);
             } catch (err) {
@@ -414,6 +416,11 @@ function App() {
         // fallback: local update
         setPlaintes((prev) => prev.map((item) => item.id === id ? { ...item, assignee: enqueteurId } : item));
         setMessage('Le dossier a été affecté au bon acteur.');
+    };
+
+    const showToast = (text, timeout = 3000) => {
+        setToast(text);
+        setTimeout(() => setToast(null), timeout);
     };
 
     const activateUser = async (id) => {
@@ -771,6 +778,13 @@ function App() {
 
                     {message && <div className="mb-5 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">{message}</div>}
                     {error && <div className="mb-5 rounded-2xl border border-rose-500/50 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{error}</div>}
+                    {toast && (
+                        <div className="fixed right-6 bottom-6 z-50">
+                            <div className={`max-w-sm rounded-xl border border-slate-800 bg-slate-950/90 px-4 py-3 text-sm text-slate-100 shadow-lg transition-transform duration-300 transform ${toast ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+                                {toast}
+                            </div>
+                        </div>
+                    )}
 
                     {currentPage === 'dashboard' && (
                         <>

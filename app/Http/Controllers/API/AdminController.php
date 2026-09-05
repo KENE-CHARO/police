@@ -40,6 +40,7 @@ class AdminController extends Controller
             ->whereHas('roles', function ($q) {
                 $q->where('name', 'enqueteur');
             })
+            ->where('is_active', true)
             ->orderBy('name')
             ->get();
 
