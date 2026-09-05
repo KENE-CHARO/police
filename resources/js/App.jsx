@@ -215,6 +215,17 @@ function App() {
                 const res = await API.get(`/plaintes/${selectedComplaintId}`, { headers: authHeaders });
                 const payload = res?.data ?? null;
                 setSelectedComplaint(payload);
+                // fetch historiques separately
+                try {
+                    API.get(`/plaintes/${selectedComplaintId}/historiques`, { headers: authHeaders }).then((hres) => {
+                        const hist = hres?.data ?? [];
+                        setSelectedComplaint((prev) => ({ ...prev, historiques: hist }));
+                    }).catch(() => {
+                        // no-op
+                    });
+                } catch (err) {
+                    // ignore
+                }
             } catch (err) {
                 console.error(err);
                 setError('Impossible de charger le dossier sélectionné.');
@@ -595,6 +606,27 @@ function App() {
             setMessage('Statut de recevabilité mis à jour.');
         } catch (err) {
             setError(err?.response?.data?.message || 'Erreur lors de la mise à jour de la recevabilité.');
+        }
+    };
+
+    const handleUploadAttachment = async (files) => {
+        if (!token || !selectedComplaint || !files || files.length === 0) return;
+        const file = files[0];
+        const form = new FormData();
+        form.append('file', file);
+
+        try {
+            setLoading(true);
+            await API.post(`/plaintes/${selectedComplaint.id}/attachments`, form, { headers: { ...authHeaders, 'Content-Type': 'multipart/form-data' } });
+            // refresh selected complaint
+            const res = await API.get(`/plaintes/${selectedComplaint.id}`, { headers: authHeaders });
+            setSelectedComplaint(res.data);
+            setMessage('Pièce jointe ajoutée.');
+        } catch (err) {
+            console.error(err);
+            setError(err?.response?.data?.message || 'Erreur lors de l’upload.');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -1166,6 +1198,12 @@ function App() {
                                                     <div className="rounded-xl border border-dashed border-slate-700 bg-slate-950/40 px-3 py-4 text-sm text-slate-400">Aucune pièce jointe.</div>
                                                 )}
                                             </div>
+                                            {sessionRole === 'enqueteur' && selectedComplaint && (
+                                                <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 mt-3">
+                                                    <div className="mb-3 flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-slate-400">Ajouter une pièce jointe</div>
+                                                    <input type="file" onChange={(e) => handleUploadAttachment(e.target.files)} className="w-full rounded-xl border border-dashed border-slate-700 bg-slate-900 px-3 py-2.5 text-sm text-slate-300" />
+                                                </div>
+                                            )}
                                             {sessionRole === 'agent_accueil' && (
                                                 <div className="mt-3 flex items-center gap-3">
                                                     <button type="button" onClick={() => setRecevable(true)} className="rounded-lg bg-cyan-500 px-3 py-2 text-sm font-semibold text-slate-950 hover:bg-cyan-400">Recevable</button>

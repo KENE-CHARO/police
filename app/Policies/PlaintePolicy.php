@@ -30,8 +30,21 @@ class PlaintePolicy
 
     public function update(User $user, Plainte $plainte)
     {
-        // Only the plaignant may update a plainte
-        return $user->id === $plainte->plaignant_id;
+        // Only the plaignant may update a plainte, but allow agent_accueil
+        // and an enqueteur assigned to this plainte to update (upload attachments)
+        if ($user->id === $plainte->plaignant_id) {
+            return true;
+        }
+
+        if ($user->roles()->where('name', 'agent_accueil')->exists()) {
+            return true;
+        }
+
+        if ($user->roles()->where('name', 'enqueteur')->exists()) {
+            return \App\Models\Enquete::where('plainte_id', $plainte->id)->where('enqueteur_id', $user->id)->exists();
+        }
+
+        return false;
     }
 
     public function delete(User $user, Plainte $plainte)
