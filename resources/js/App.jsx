@@ -195,6 +195,23 @@ function App() {
         fetchUsers();
     }, [token, user, sessionRole]);
 
+    // real-time notifications via Echo (if configured)
+    useEffect(() => {
+        if (!window.Echo || !user?.id) return;
+
+        const channel = window.Echo.private(`users.${user.id}`);
+        channel.listen('NotificationCreated', (e) => {
+            // normalize incoming event shape
+            const payload = e.data ? e.data : e;
+            setNotifications((prev) => [{ id: Date.now(), type: payload.type || payload.event || 'Notification', data: payload, read_at: null, created_at: new Date().toISOString() }, ...prev]);
+            setMessage(payload.message || payload.type || 'Nouvelle notification');
+        });
+
+        return () => {
+            try { window.Echo.leave(`users.${user.id}`); } catch (err) { /* ignore */ }
+        };
+    }, [user?.id]);
+
     const persistSession = (userData, newToken) => {
         const nextRole = getUserRoleFromData(userData);
         const mergedUser = { ...userData, role: nextRole };

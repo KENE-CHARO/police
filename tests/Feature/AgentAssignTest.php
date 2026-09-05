@@ -7,6 +7,8 @@ use Tests\TestCase;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\Plainte;
+use App\Notifications\EnqueteAssigned;
+use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\Sanctum;
 
 class AgentAssignTest extends TestCase
@@ -34,7 +36,12 @@ class AgentAssignTest extends TestCase
 
         $this->assertDatabaseHas('enquetes', ['plainte_id' => $plainte->id, 'enqueteur_id' => $enqueteur->id]);
 
-        // check notification record exists for enqueteur
-        $this->assertDatabaseHas('notifications', ['user_id' => $enqueteur->id]);
+        // check notification record exists for enqueteur and content
+        $this->assertDatabaseHas('notifications', ['user_id' => $enqueteur->id, 'type' => EnqueteAssigned::class]);
+
+        $notif = DB::table('notifications')->where('user_id', $enqueteur->id)->first();
+        $this->assertNotNull($notif);
+        $data = json_decode($notif->data, true);
+        $this->assertEquals($plainte->id, $data['plainte_id']);
     }
 }
