@@ -20,9 +20,16 @@ class PlainteController extends Controller
     {
         $user = $request->user();
         $query = Plainte::query();
-        // Citizens only see their own plaintes. Admin and personnel see all plaintes.
+        // Citizens only see their own plaintes.
         if ($user->roles()->where('name', 'citoyen')->exists()) {
             $query->where('plaignant_id', $user->id);
+        }
+
+        // Enqueteur may only see plaintes that are assigned to them via an Enquete
+        if ($user->roles()->where('name', 'enqueteur')->exists()) {
+            $query->whereHas('enquetes', function ($q) use ($user) {
+                $q->where('enqueteur_id', $user->id);
+            });
         }
 
         return response()->json($query->with('commissariat', 'plaignant')->paginate(15));
