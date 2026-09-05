@@ -121,6 +121,7 @@ function App() {
     const [notifications, setNotifications] = useState(initialNotifications);
     const [currentPage, setCurrentPage] = useState('dashboard');
     const [selectedComplaintId, setSelectedComplaintId] = useState(null);
+    const [selectedComplaint, setSelectedComplaint] = useState(null);
     const [complaintForm, setComplaintForm] = useState(emptyComplaint);
     const [complaintFiles, setComplaintFiles] = useState([]);
     const [enqueteForm, setEnqueteForm] = useState(emptyEnquete);
@@ -200,6 +201,29 @@ function App() {
 
         fetchUsers();
     }, [token, user, sessionRole]);
+
+    // When a complaint is selected, fetch full details from API so the user (enqueteur) can view attachments and full dossier
+    useEffect(() => {
+        if (!selectedComplaintId) {
+            setSelectedComplaint(null);
+            return;
+        }
+        if (!token) return;
+
+        const fetchDetail = async () => {
+            try {
+                const res = await API.get(`/plaintes/${selectedComplaintId}`, { headers: authHeaders });
+                const payload = res?.data ?? null;
+                setSelectedComplaint(payload);
+            } catch (err) {
+                console.error(err);
+                setError('Impossible de charger le dossier sélectionné.');
+                setSelectedComplaint(null);
+            }
+        };
+
+        fetchDetail();
+    }, [selectedComplaintId, token]);
 
     // real-time notifications via Echo (if configured)
     useEffect(() => {
