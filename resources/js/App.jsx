@@ -133,6 +133,9 @@ function App() {
         { id: 3, name: 'Saliou Kane', email: 'accueil@police.local', role: 'agent_accueil' },
         { id: 4, name: 'Mamadou Sarr', email: 'citoyen@police.local', role: 'citoyen' },
     ]);
+    const [commissariats, setCommissariats] = useState([]);
+    const [commissariatForm, setCommissariatForm] = useState({ nom: '', adresse: '', telephone: '' });
+    const [adminTab, setAdminTab] = useState('users');
 
     const sessionRole = getUserRoleFromData(user);
     const userRole = roleConfig[sessionRole] || roleConfig.citoyen;
@@ -201,6 +204,24 @@ function App() {
 
         fetchUsers();
     }, [token, user, sessionRole]);
+
+    useEffect(() => {
+        if (!token) return;
+        if (sessionRole !== 'admin') return;
+
+        const fetchComms = async () => {
+            try {
+                const res = await API.get('/admin/commissariats', { headers: authHeaders });
+                const payload = res?.data?.data ?? res?.data ?? [];
+                setCommissariats(Array.isArray(payload) ? payload : []);
+            } catch (err) {
+                console.error('fetch commissariats failed', err);
+                setCommissariats([]);
+            }
+        };
+
+        fetchComms();
+    }, [token, sessionRole]);
 
     // When a complaint is selected, fetch full details from API so the user (enqueteur) can view attachments and full dossier
     useEffect(() => {
@@ -485,6 +506,27 @@ function App() {
             setMessage('Le compte utilisateur a été supprimé avec succès.');
         } catch (err) {
             setError(err?.response?.data?.message || 'Erreur lors de la suppression du compte.');
+        }
+    };
+
+    const createCommissariat = async (event) => {
+        event.preventDefault();
+        if (!token) return;
+
+        setLoading(true);
+        setError('');
+
+        try {
+            const res = await API.post('/admin/commissariats', commissariatForm, { headers: authHeaders });
+            const comm = res?.data?.commissariat ?? res?.data ?? null;
+            if (comm) setCommissariats((prev) => [comm, ...prev]);
+            setCommissariatForm({ nom: '', adresse: '', telephone: '' });
+            setMessage('Commissariat créé.');
+        } catch (err) {
+            console.error(err);
+            setError(err?.response?.data?.message || 'Erreur lors de la création du commissariat.');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -1266,58 +1308,101 @@ function App() {
                                 <button type="button" className="rounded-xl bg-cyan-500 px-3 py-2 text-sm font-medium text-slate-950 hover:bg-cyan-400">Nouveau compte</button>
                             </div>
 
-                            <div className="overflow-hidden rounded-2xl border border-slate-800">
-                                <table className="min-w-full divide-y divide-slate-800 text-left text-sm">
-                                    <thead className="bg-slate-900 text-slate-300">
-                                        <tr>
-                                            <th className="px-4 py-3 font-medium">Nom</th>
-                                            <th className="px-4 py-3 font-medium">Email</th>
-                                            <th className="px-4 py-3 font-medium">Rôle</th>
-                                            <th className="px-4 py-3 font-medium">Statut</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-800 bg-slate-950/40">
-                                        {allUsers.map((person) => (
-                                            <tr key={person.email} className="hover:bg-slate-900/60">
-                                                <td className="px-4 py-3 text-slate-100">{person.name}</td>
-                                                <td className="px-4 py-3 text-slate-300">{person.email}</td>
-                                                <td className="px-4 py-3">
-                                                    <span className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.2em] ${roleConfig[person.role]?.color || roleConfig.citoyen.color}`}>
-                                                        {roleConfig[person.role]?.label || 'Citoyen'}
-                                                    </span>
-                                                </td>
-                                                <td className="px-4 py-3">
-                                                    <div className="flex items-center gap-3">
-                                                        <span className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.2em] ${person.is_active ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-200' : 'border-amber-500/30 bg-amber-500/10 text-amber-200'}`}>
-                                                            {person.is_active ? 'Actif' : 'En attente'}
+                            {sessionRole === 'admin' && (
+                                <div className="mb-4 flex gap-2">
+                                    <button type="button" onClick={() => setAdminTab('users')} className={`rounded-xl px-3 py-2 text-sm font-medium ${adminTab === 'users' ? 'bg-cyan-500 text-slate-900' : 'bg-slate-800 text-slate-300'}`}>Utilisateurs</button>
+                                    <button type="button" onClick={() => setAdminTab('commissariats')} className={`rounded-xl px-3 py-2 text-sm font-medium ${adminTab === 'commissariats' ? 'bg-cyan-500 text-slate-900' : 'bg-slate-800 text-slate-300'}`}>Commissariats</button>
+                                </div>
+                            )}
+
+                            {adminTab === 'users' && (
+                                <div className="overflow-hidden rounded-2xl border border-slate-800">
+                                    <table className="min-w-full divide-y divide-slate-800 text-left text-sm">
+                                        <thead className="bg-slate-900 text-slate-300">
+                                            <tr>
+                                                <th className="px-4 py-3 font-medium">Nom</th>
+                                                <th className="px-4 py-3 font-medium">Email</th>
+                                                <th className="px-4 py-3 font-medium">Rôle</th>
+                                                <th className="px-4 py-3 font-medium">Statut</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-800 bg-slate-950/40">
+                                            {allUsers.map((person) => (
+                                                <tr key={person.email} className="hover:bg-slate-900/60">
+                                                    <td className="px-4 py-3 text-slate-100">{person.name}</td>
+                                                    <td className="px-4 py-3 text-slate-300">{person.email}</td>
+                                                    <td className="px-4 py-3">
+                                                        <span className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.2em] ${roleConfig[person.role]?.color || roleConfig.citoyen.color}`}>
+                                                            {roleConfig[person.role]?.label || 'Citoyen'}
                                                         </span>
-                                                        {sessionRole === 'admin' && (
-                                                            <>
-                                                                {!person.is_active && (
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <div className="flex items-center gap-3">
+                                                            <span className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] uppercase tracking-[0.2em] ${person.is_active ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-200' : 'border-amber-500/30 bg-amber-500/10 text-amber-200'}`}>
+                                                                {person.is_active ? 'Actif' : 'En attente'}
+                                                            </span>
+                                                            {sessionRole === 'admin' && (
+                                                                <>
+                                                                    {!person.is_active && (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => activateUser(person.id)}
+                                                                            className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-emerald-200 transition hover:bg-emerald-500/20"
+                                                                        >
+                                                                            Valider
+                                                                        </button>
+                                                                    )}
                                                                     <button
                                                                         type="button"
-                                                                        onClick={() => activateUser(person.id)}
-                                                                        className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-emerald-200 transition hover:bg-emerald-500/20"
+                                                                        onClick={() => deleteUserAccount(person.id)}
+                                                                        className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-200 transition hover:bg-rose-500/20"
                                                                     >
-                                                                        Valider
+                                                                        Supprimer
                                                                     </button>
-                                                                )}
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => deleteUserAccount(person.id)}
-                                                                    className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-rose-200 transition hover:bg-rose-500/20"
-                                                                >
-                                                                    Supprimer
-                                                                </button>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+
+                            {adminTab === 'commissariats' && (
+                                <div className="space-y-4">
+                                    <form onSubmit={createCommissariat} className="grid gap-3 md:grid-cols-3">
+                                        <input value={commissariatForm.nom} onChange={(e) => setCommissariatForm({ ...commissariatForm, nom: e.target.value })} placeholder="Nom" className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2.5 text-white outline-none" required />
+                                        <input value={commissariatForm.adresse} onChange={(e) => setCommissariatForm({ ...commissariatForm, adresse: e.target.value })} placeholder="Adresse" className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2.5 text-white outline-none" />
+                                        <div className="flex gap-2">
+                                            <input value={commissariatForm.telephone} onChange={(e) => setCommissariatForm({ ...commissariatForm, telephone: e.target.value })} placeholder="Téléphone" className="flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2.5 text-white outline-none" />
+                                            <button type="submit" className="rounded-xl bg-cyan-500 px-4 py-2 text-slate-900">Créer</button>
+                                        </div>
+                                    </form>
+
+                                    <div className="overflow-hidden rounded-2xl border border-slate-800">
+                                        <table className="min-w-full divide-y divide-slate-800 text-left text-sm">
+                                            <thead className="bg-slate-900 text-slate-300">
+                                                <tr>
+                                                    <th className="px-4 py-3 font-medium">Nom</th>
+                                                    <th className="px-4 py-3 font-medium">Adresse</th>
+                                                    <th className="px-4 py-3 font-medium">Téléphone</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-800 bg-slate-950/40">
+                                                {commissariats.map((c) => (
+                                                    <tr key={c.id} className="hover:bg-slate-900/60">
+                                                        <td className="px-4 py-3 text-slate-100">{c.nom}</td>
+                                                        <td className="px-4 py-3 text-slate-300">{c.adresse}</td>
+                                                        <td className="px-4 py-3 text-slate-300">{c.telephone}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            )}
                         </section>
                     )}
 
