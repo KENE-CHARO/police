@@ -48,5 +48,13 @@ class AgentListEnqueteursTest extends TestCase
         $this->assertContains('enq_active@police.local', $emails);
         $this->assertNotContains('enq_inactive@police.local', $emails);
         $this->assertNotContains('citoyen@police.local', $emails);
+
+        // each returned user should include roles and one role should be 'enqueteur'
+        foreach ($data as $userPayload) {
+            $this->assertArrayHasKey('roles', $userPayload);
+            $this->assertIsArray($userPayload['roles']);
+            $roleNames = array_column($userPayload['roles'], 'name');
+            $this->assertContains('enqueteur', $roleNames);
+        }
     }
 }
