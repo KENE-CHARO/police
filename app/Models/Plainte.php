@@ -10,7 +10,27 @@ class Plainte extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['reference','plaignant_id','commissariat_id','titre','description','statut'];
+    protected $fillable = [
+        'reference',
+        'plaignant_id',
+        'commissariat_id',
+        'titre',
+        'description',
+        'recevable',
+        'statut',
+        'paid',
+        'payment_phone',
+        'payment_operator',
+        'payment_txn_id',
+        'payment_status',
+        'payment_amount',
+    ];
+
+    protected $casts = [
+        'paid' => 'boolean',
+        'payment_amount' => 'integer',
+        'recevable' => 'boolean',
+    ];
 
     public function plaignant()
     {

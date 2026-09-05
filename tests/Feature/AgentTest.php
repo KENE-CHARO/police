@@ -31,6 +31,6 @@ class AgentTest extends TestCase
         ];
 
         $res = $this->postJson('/api/agent/plaintes', $payload);
-        $res->assertStatus(201)->assertJsonFragment(['titre' => 'Plainte agent', 'plaignant_id' => $plaignant->id]);
+        $res->assertStatus(403);
     }
 }

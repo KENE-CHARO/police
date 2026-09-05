@@ -22,8 +22,8 @@ class EnqueteurController extends Controller
     public function assign(Request $request)
     {
         $user = $request->user();
-        if (! $user->roles()->where('name','enqueteur')->exists() && ! $user->roles()->where('name','admin')->exists()) {
-            return response()->json(['message'=>'Unauthorized'],403);
+        if (! $user->roles()->whereIn('name', ['enqueteur', 'agent_accueil'])->exists()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
         }
 
         $data = $request->validate([
@@ -53,7 +53,7 @@ class EnqueteurController extends Controller
             Log::info('notification.enquete.assigned', ['user_id' => $enqueteur->id, 'enquete_id' => $enquete->id]);
             // queue email notification
             try {
-                Mail::to($enqueteur)->queue(new EnqueteAssignedMail($enquete));
+                Mail::to($enqueteur->email)->queue(new EnqueteAssignedMail($enquete));
             } catch (\Throwable $e) {
                 Log::warning('mail.enqueue.failed', ['error' => $e->getMessage()]);
             }
@@ -74,14 +74,14 @@ class EnqueteurController extends Controller
             'details' => json_encode(['enquete_id' => $enquete->id, 'enqueteur_id' => $enquete->enqueteur_id]),
         ]);
 
-        return response()->json($enquete->load('plainte','enqueteur'), 201);
+        return response()->json($enquete->load('plainte', 'enqueteur'), 201);
     }
 
     public function updateStatus(Request $request, Enquete $enquete)
     {
         $user = $request->user();
-        if ($enquete->enqueteur_id !== $user->id && ! $user->roles()->where('name','admin')->exists()) {
-            return response()->json(['message'=>'Unauthorized'],403);
+        if ($enquete->enqueteur_id !== $user->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
         }
 
         $data = $request->validate([
@@ -121,7 +121,7 @@ class EnqueteurController extends Controller
             ]);
             Log::info('notification.enquete.status_changed', ['user_id' => $enqueteur->id, 'enquete_id' => $enquete->id, 'statut' => $data['statut']]);
             try {
-                Mail::to($enqueteur)->queue(new EnqueteStatusChangedMail($enquete, $data['statut']));
+                Mail::to($enqueteur->email)->queue(new EnqueteStatusChangedMail($enquete, $data['statut']));
             } catch (\Throwable $e) {
                 Log::warning('mail.enqueue.failed', ['error' => $e->getMessage()]);
             }
@@ -144,7 +144,7 @@ class EnqueteurController extends Controller
             ]);
             Log::info('notification.enquete.status_changed', ['user_id' => $plaignant->id, 'enquete_id' => $enquete->id, 'statut' => $data['statut']]);
             try {
-                Mail::to($plaignant)->queue(new EnqueteStatusChangedMail($enquete, $data['statut']));
+                Mail::to($plaignant->email)->queue(new EnqueteStatusChangedMail($enquete, $data['statut']));
             } catch (\Throwable $e) {
                 Log::warning('mail.enqueue.failed', ['error' => $e->getMessage()]);
             }
@@ -155,6 +155,6 @@ class EnqueteurController extends Controller
             }
         }
 
-        return response()->json($enquete->fresh()->load('plainte','enqueteur'));
+        return response()->json($enquete->fresh()->load('plainte', 'enqueteur'));
     }
 }

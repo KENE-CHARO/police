@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Auth;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Hash;
 
 class ChangePasswordRequest extends FormRequest
 {
@@ -14,16 +15,27 @@ class ChangePasswordRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'current_password' => 'required|string',
-            'password' => 'required|string|min:8|confirmed',
+            'current_password' => ['required', 'string'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
         ];
     }
 
-    public function validated(array $keys = null)
+    public function withValidator($validator)
     {
-        $data = parent::validated($keys);
-        // Remove current_password from the data returned for storage
+        $validator->after(function ($validator) {
+            $user = $this->user();
+
+            if (! $user || ! Hash::check((string) $this->input('current_password'), (string) $user->password)) {
+                $validator->errors()->add('current_password', 'Le mot de passe actuel est incorrect.');
+            }
+        });
+    }
+
+    public function validated($key = null, $default = null)
+    {
+        $data = parent::validated($key, $default);
         unset($data['current_password']);
+
         return $data;
     }
 }

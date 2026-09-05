@@ -17,6 +17,8 @@ class RegisterRequest extends FormRequest
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
+            'role' => 'sometimes|string|in:citoyen,agent_accueil,enqueteur,admin',
+            'commissariat_id' => 'nullable|integer|exists:commissariats,id',
         ];
     }
 

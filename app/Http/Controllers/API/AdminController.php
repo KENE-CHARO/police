@@ -12,7 +12,7 @@ class AdminController extends Controller
     protected function ensureAdmin(Request $request)
     {
         $user = $request->user();
-        if (! $user->roles()->where('name','admin')->exists()) {
+        if (! $user->roles()->where('name', 'admin')->exists()) {
             abort(403, 'Unauthorized');
         }
     }
@@ -20,7 +20,13 @@ class AdminController extends Controller
     public function listUsers(Request $request)
     {
         $this->ensureAdmin($request);
-        return response()->json(User::with('roles')->paginate(20));
+
+        $users = User::with('roles')
+            ->orderBy('is_active', 'asc')
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+
+        return response()->json($users);
     }
 
     public function listRoles(Request $request)
@@ -51,5 +57,30 @@ class AdminController extends Controller
         }
 
         return response()->json($user->load('roles'));
+    }
+
+    public function activateUser(Request $request, User $user)
+    {
+        $this->ensureAdmin($request);
+
+        $user->is_active = true;
+        $user->save();
+
+        return response()->json([
+            'message' => 'Compte validé avec succès.',
+            'user' => $user->load('roles'),
+        ]);
+    }
+
+    public function deleteUser(Request $request, User $user)
+    {
+        $this->ensureAdmin($request);
+
+        $user->tokens()->delete();
+        $user->delete();
+
+        return response()->json([
+            'message' => 'Compte utilisateur supprimé avec succès.',
+        ]);
     }
 }

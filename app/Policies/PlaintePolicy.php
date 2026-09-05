@@ -10,13 +10,14 @@ class PlaintePolicy
 {
     public function view(User $user, Plainte $plainte)
     {
-        if ($user->id === $plainte->plaignant_id || $user->roles()->where('name', 'admin')->exists()) {
+        // Plaignant always can view their own plainte
+        if ($user->id === $plainte->plaignant_id) {
             return true;
         }
 
-        // allow assigned enqueteur to view
-        if ($user->roles()->where('name', 'enqueteur')->exists()) {
-            return Enquete::where('plainte_id', $plainte->id)->where('enqueteur_id', $user->id)->exists();
+        // Personnel (agent_accueil, enqueteur) can view all plaintes, admin should not see details
+        if ($user->roles()->whereIn('name', ['agent_accueil', 'enqueteur'])->exists()) {
+            return true;
         }
 
         return false;
@@ -24,16 +25,19 @@ class PlaintePolicy
 
     public function update(User $user, Plainte $plainte)
     {
-        return $user->id === $plainte->plaignant_id || $user->roles()->where('name', 'admin')->exists();
+        // Only the plaignant may update a plainte
+        return $user->id === $plainte->plaignant_id;
     }
 
     public function delete(User $user, Plainte $plainte)
     {
-        return $user->id === $plainte->plaignant_id || $user->roles()->where('name', 'admin')->exists();
+        // Only the plaignant may delete their plainte
+        return $user->id === $plainte->plaignant_id;
     }
 
     public function create(User $user)
     {
-        return true;
+        // Only citizens may create plaintes
+        return $user->roles()->where('name', 'citoyen')->exists();
     }
 }

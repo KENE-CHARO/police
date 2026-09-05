@@ -27,7 +27,7 @@ class NotificationEmailBroadcastTest extends TestCase
         $enqueteur->roles()->attach($role->id);
 
         $plaignant = User::factory()->create();
-        $plainte = Plainte::create(['titre'=>'T','description'=>'D','plaignant_id'=>$plaignant->id,'reference'=>'R1']);
+        $plainte = Plainte::create(['titre' => 'T', 'description' => 'D', 'plaignant_id' => $plaignant->id, 'reference' => 'R1']);
 
         Sanctum::actingAs($enqueteur);
 
@@ -35,6 +35,9 @@ class NotificationEmailBroadcastTest extends TestCase
         $res->assertStatus(201);
 
         Mail::assertQueued(EnqueteAssignedMail::class);
+        $queued = Mail::queued(EnqueteAssignedMail::class);
+        $this->assertNotEmpty($queued);
+        $this->assertTrue($queued[0]->hasTo($enqueteur->email));
         Event::assertDispatched(NotificationCreated::class);
 
         $this->assertDatabaseHas('notifications', ['user_id' => $enqueteur->id]);
