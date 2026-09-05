@@ -626,13 +626,14 @@ function App() {
         citoyen: ['dashboard', 'complaints'],
         agent_accueil: ['dashboard', 'complaints', 'investigations', 'notifications'],
         enqueteur: ['dashboard', 'investigations', 'notifications'],
-        admin: ['dashboard', 'complaints', 'users', 'notifications'],
+        admin: ['dashboard', 'complaints', 'users', 'commissariats', 'notifications'],
     };
 
     const visiblePages = rolePages[sessionRole] || rolePages.citoyen;
     const menuItems = [
         { key: 'dashboard', label: 'Tableau de bord' },
         { key: 'complaints', label: 'Plaintes' },
+        { key: 'commissariats', label: 'Commissariats' },
         { key: 'investigations', label: 'Enquêtes' },
         { key: 'users', label: 'Utilisateurs' },
         { key: 'notifications', label: 'Notifications' },
@@ -1421,6 +1422,49 @@ function App() {
                                     </div>
                                 </div>
                             )}
+                        </section>
+                    )}
+
+                    {currentPage === 'commissariats' && (
+                        <section className="rounded-[24px] border border-slate-800 bg-slate-950/60 p-5">
+                            <div className="mb-4 flex items-center justify-between">
+                                <h2 className="text-lg font-semibold text-white">Commissariats</h2>
+                                <div className="flex gap-2">
+                                    <button type="button" onClick={() => setAdminTab('commissariats')} className={`rounded-xl px-3 py-2 text-sm font-medium bg-slate-800 text-slate-300`}>Gérer</button>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <form onSubmit={createCommissariat} className="grid gap-3 md:grid-cols-3">
+                                    <input value={commissariatForm.nom} onChange={(e) => setCommissariatForm({ ...commissariatForm, nom: e.target.value })} placeholder="Nom" className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2.5 text-white outline-none" required />
+                                    <input value={commissariatForm.adresse} onChange={(e) => setCommissariatForm({ ...commissariatForm, adresse: e.target.value })} placeholder="Adresse" className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2.5 text-white outline-none" />
+                                    <div className="flex gap-2">
+                                        <input value={commissariatForm.telephone} onChange={(e) => setCommissariatForm({ ...commissariatForm, telephone: e.target.value })} placeholder="Téléphone" className="flex-1 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2.5 text-white outline-none" />
+                                        <button type="submit" className="rounded-xl bg-cyan-500 px-4 py-2 text-slate-900">Créer</button>
+                                    </div>
+                                </form>
+
+                                <div className="overflow-hidden rounded-2xl border border-slate-800">
+                                    <table className="min-w-full divide-y divide-slate-800 text-left text-sm">
+                                        <thead className="bg-slate-900 text-slate-300">
+                                            <tr>
+                                                <th className="px-4 py-3 font-medium">Nom</th>
+                                                <th className="px-4 py-3 font-medium">Adresse</th>
+                                                <th className="px-4 py-3 font-medium">Téléphone</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-800 bg-slate-950/40">
+                                            {commissariats.map((c) => (
+                                                <tr key={c.id} className="hover:bg-slate-900/60">
+                                                    <td className="px-4 py-3 text-slate-100">{c.nom}</td>
+                                                    <td className="px-4 py-3 text-slate-300">{c.adresse}</td>
+                                                    <td className="px-4 py-3 text-slate-300">{c.telephone}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </section>
                     )}
 
