@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Role;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class AdminController extends Controller
 {
@@ -70,6 +72,24 @@ class AdminController extends Controller
         ]);
 
         $comm = \App\Models\Commissariat::create($data);
+
+        // Attempt to create a dedicated database for this commissariat.
+        try {
+            // generate a safe database name
+            $dbName = 'police_comm_' . $comm->id;
+            $dbName = preg_replace('/[^A-Za-z0-9_]/', '_', strtolower($dbName));
+
+            // Create database using the default connection (requires privileges)
+            DB::statement("CREATE DATABASE `{$dbName}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+
+            // persist db_name on the model
+            $comm->db_name = $dbName;
+            $comm->save();
+        } catch (\Exception $e) {
+            // rollback commissariat creation if DB cannot be created
+            $comm->delete();
+            return response()->json(['message' => 'Impossible de créer la base de données du commissariat.', 'error' => $e->getMessage()], 500);
+        }
 
         return response()->json(['message' => 'Commissariat créé.', 'commissariat' => $comm], 201);
     }

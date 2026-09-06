@@ -9,7 +9,7 @@ class Commissariat extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nom','adresse','telephone'];
+    protected $fillable = ['nom','adresse','telephone','db_name'];
 
     public function plaintes()
     {
